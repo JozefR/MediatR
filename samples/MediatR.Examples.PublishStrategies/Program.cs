@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Timers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatR.Examples.PublishStrategies;
@@ -14,9 +16,11 @@ class Program
         services.AddSingleton<Publisher>();
 
         services.AddTransient<INotificationHandler<Pinged>>(sp => new SyncPingedHandler("1"));
-        services.AddTransient<INotificationHandler<Pinged>>(sp => new AsyncPingedHandler("2"));
-        services.AddTransient<INotificationHandler<Pinged>>(sp => new AsyncPingedHandler("3"));
-        services.AddTransient<INotificationHandler<Pinged>>(sp => new SyncPingedHandler("4"));
+        services.AddTransient<INotificationHandler<Pinged>>(sp => new SyncPingedHandler("2"));
+        services.AddTransient<INotificationHandler<Pinged>>(sp => new SyncPingedHandler("3"));
+        services.AddTransient<INotificationHandler<Pinged>>(sp => new AsyncPingedHandler("4"));
+        services.AddTransient<INotificationHandler<Pinged>>(sp => new AsyncPingedHandler("5"));
+        services.AddTransient<INotificationHandler<Pinged>>(sp => new AsyncPingedHandler("6"));
 
         var provider = services.BuildServiceProvider();
 
@@ -29,9 +33,14 @@ class Program
             Console.WriteLine($"Strategy: {strategy}");
             Console.WriteLine("----------");
 
+            var timer = new Stopwatch();
             try
             {
+                timer.Start();
+                
                 await publisher.Publish(pinged, strategy);
+                
+                timer.Stop();
             }
             catch (Exception ex)
             {
@@ -39,6 +48,7 @@ class Program
             }
 
             await Task.Delay(1000);
+            Console.WriteLine($"Elapsed time: {timer.ElapsedMilliseconds} ms");
             Console.WriteLine("----------");
         }
 
